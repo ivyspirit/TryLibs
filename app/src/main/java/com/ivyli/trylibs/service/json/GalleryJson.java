@@ -27,7 +27,6 @@ public class GalleryJson extends Model{
     public List<ImageJson> getImages(){
         // get the data from db, cache it on the object
         data = new Select().from(ImageJson.class).execute();
-
         return data;
     }
 

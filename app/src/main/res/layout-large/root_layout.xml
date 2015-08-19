@@ -17,7 +17,7 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:numColumns="1"
+        android:numColumns="2"
         android:id="@+id/image_list_view"
         />
 </com.ivyli.trylibs.views.LibImageListView>

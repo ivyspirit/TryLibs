@@ -13,9 +13,6 @@ import flow.path.Path;
 import flow.path.PathContainer;
 import flow.path.PathContainerView;
 
-/**
- * Created by IvyLi on 8/16/15.
- */
  public class FramePathContainerView extends FrameLayout
         implements IHandlesBack, PathContainerView{
     private final PathContainer container;

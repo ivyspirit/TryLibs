@@ -7,6 +7,6 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <string name="action_example">Example action</string>
-
+<string name="error_loading_image">Seems something wrong when try to load the image. Please
+restart the app, or rotate the device :(.</string>
 </resources>

@@ -4,6 +4,7 @@ package com.ivyli.trylibs.screen;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.google.gson.annotations.Expose;
 import com.ivyli.trylibs.R;
 import com.ivyli.trylibs.mortarcore.WithModule;
 import com.ivyli.trylibs.service.DatabaseService;
@@ -30,6 +31,10 @@ import rx.subscriptions.Subscriptions;
 @Layout(R.layout.root_layout)
 @WithModule(ImageListScreen.Module.class)
 public class ImageListScreen extends Path{
+    public static String TAG = ImageListScreen.class.getSimpleName();
+
+    @Expose
+    static int imageIndex = 0;
 
     @dagger.Module(injects = LibImageListView.class, complete = false, library = true)
     public static class Module{
@@ -67,35 +72,9 @@ public class ImageListScreen extends Path{
             }
 
             if((null != images && images.size() > 0)){
-                getView().showImages(images);
+                getView().showImages(images, imageIndex);
                 return;
             }
-
-            Observer<GalleryJson> obs = new Observer<GalleryJson>(){
-                @Override
-                public void onCompleted(){
-                    Log.w(getClass().getName(), "That's surprising, never thought this should end.");
-                    running = Subscriptions.empty();
-                }
-
-                @Override
-                public void onError(Throwable e){
-                    Log.w(getClass().getName(), "'sploded, will try again on next config change.");
-                    Log.w(getClass().getName(), e);
-                    running = Subscriptions.empty();
-                }
-
-                @Override
-                public void onNext(GalleryJson galleryJson){
-                    if(!hasView()){
-                        return;
-                    }
-                    images = galleryJson.getImages();
-                    getView().showImages(images);
-
-//                                    getView().showImages(galleryJson.data);
-                }
-            };
 
             // seems like we did not have any images in the local db yet. make api call to imagur.
             running = mDataService.loadImages("hot", "virtal")
@@ -104,14 +83,22 @@ public class ImageListScreen extends Path{
                             subscribe(new Observer<GalleryJson>(){
                                 @Override
                                 public void onCompleted(){
-                                    Log.w(getClass().getName(), "That's surprising, never thought this should end.");
+                                    Log.w(TAG, "Completed?? OK.");
                                     running = Subscriptions.empty();
                                 }
 
                                 @Override
                                 public void onError(Throwable e){
-                                    Log.w(getClass().getName(), "'sploded, will try again on next config change.");
-                                    Log.w(getClass().getName(), e);
+                                    // I still want to try to see if there is any data cached we
+                                    // can display. I should set an error view.
+                                    List<ImageJson> list = new GalleryJson().getImages();
+                                    if(null != list && list.size() > 0){
+                                        getView().showImages(list, 0);
+                                        return;
+                                    }
+
+                                    getView().onError();
+                                    Log.w(TAG, e.getLocalizedMessage());
                                     running = Subscriptions.empty();
                                 }
 
@@ -121,13 +108,15 @@ public class ImageListScreen extends Path{
                                         return;
                                     }
                                     images = galleryJson.getImages();
-                                    getView().showImages(images);
+                                    getView().showImages(images, 0);
                                 }
                             });
 
         }
 
         public void onImageSelected(int position){
+            // want to be able to go back to the prev position when user tap back.
+            imageIndex = position;
             Flow.get(getView()).set(new ImageScreen(images.get(position)));
         }
     }

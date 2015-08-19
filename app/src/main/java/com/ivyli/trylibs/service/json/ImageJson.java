@@ -11,9 +11,6 @@ import com.google.gson.annotations.Expose;
 @Table(name = "image")
 public class ImageJson extends Model{
 
-//    @Inject
-//    public ImageJson(){}
-
     @JsonProperty("link")
     @Column(name = "link")
     @Expose

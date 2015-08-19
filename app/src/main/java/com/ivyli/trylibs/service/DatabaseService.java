@@ -1,6 +1,8 @@
 package com.ivyli.trylibs.service;
 
 
+import android.util.Log;
+
 import com.ivyli.trylibs.service.json.GalleryJson;
 import com.ivyli.trylibs.service.json.ImageJson;
 
@@ -23,7 +25,6 @@ public class DatabaseService{
     }
 
     public Observable<GalleryJson> loadImages(final String section, final String sort){
-
         return Observable.create(new Observable.OnSubscribe<GalleryJson>(){
                                      @Override
                                      public void call(final Subscriber<? super GalleryJson> subscriber){
@@ -35,6 +36,7 @@ public class DatabaseService{
                                              if(null == data || data.size() <= 0){
                                                  next = mApiService.getImages(section, sort);
                                                  data = next.data;
+                                                 // only save the image which is not album.
                                                  for(ImageJson imageJson : data){
                                                      if(!imageJson.is_album){
                                                          imageJson.save();
@@ -46,6 +48,8 @@ public class DatabaseService{
                                                  subscriber.onNext(next);
                                              }
                                          }catch(RetrofitError e){
+                                             Log.e(TAG, e.getLocalizedMessage() + " Something " +
+                                                     "wrong when try to get data from server");
                                              if(!subscriber.isUnsubscribed()){
                                                  subscriber.onError(e);
                                              }

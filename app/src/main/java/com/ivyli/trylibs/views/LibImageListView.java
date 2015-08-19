@@ -3,13 +3,17 @@ package com.ivyli.trylibs.views;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.ivyli.trylibs.ObjectGraphService;
 import com.ivyli.trylibs.R;
@@ -21,7 +25,10 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-public class LibImageListView extends ListView{
+public class LibImageListView extends RelativeLayout{
+    private GridView mGrid;
+    private ProgressBar mProgress;
+
     @Inject
     ImageListScreen.Presenter presenter;
 
@@ -42,16 +49,34 @@ public class LibImageListView extends ListView{
         presenter.dropView(this);
     }
 
-    public void showImages(List<ImageJson> imageJsons){
-        Adapter adapter = new Adapter(getContext(), imageJsons);
+    @Override
+    protected void onFinishInflate(){
+        super.onFinishInflate();
+        mProgress = (ProgressBar)findViewById(R.id.image_list_progressbar);
+        mGrid = (GridView)findViewById(R.id.image_list_view);
 
-        setAdapter(adapter);
-        setOnItemClickListener(new OnItemClickListener(){
+    }
+
+    public void onError(){
+        mProgress.setVisibility(GONE);
+        Toast t = Toast.makeText(getContext(),
+                R.string.error_loading_image, Toast.LENGTH_LONG);
+        t.setGravity(Gravity.CENTER, 0, 0);
+        t.show();
+    }
+
+    public void showImages(List<ImageJson> imageJsons, int index){
+        Adapter adapter = new Adapter(getContext(), imageJsons);
+        mProgress.setVisibility(GONE);
+        mGrid.setAdapter(adapter);
+        mGrid.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id){
                 presenter.onImageSelected(position);
             }
         });
+
+        mGrid.setSelection(index);
     }
 
     private static class Adapter extends ArrayAdapter<ImageJson>{

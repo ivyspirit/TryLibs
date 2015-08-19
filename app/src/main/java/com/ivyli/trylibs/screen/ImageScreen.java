@@ -30,7 +30,6 @@ public class ImageScreen extends Path{
 
     @dagger.Module(injects = {SingleImageView.class}, addsTo = AndroidModule.class, library = true)
     public class Module{
-
         @Provides
         ImageJson provideImage(){
             return mImage;

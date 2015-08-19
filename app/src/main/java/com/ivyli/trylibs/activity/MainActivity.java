@@ -1,26 +1,17 @@
 package com.ivyli.trylibs.activity;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
-import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.google.gson.Gson;
 import com.ivyli.trylibs.IvyBaseActivity;
 import com.ivyli.trylibs.R;
 import com.ivyli.trylibs.android.ActionBarOwner;
-import com.ivyli.trylibs.fragment.NavigationDrawerFragment;
 import com.ivyli.trylibs.screen.GsonParceler;
 import com.ivyli.trylibs.screen.ImageListScreen;
-import com.ivyli.trylibs.views.FramePathContainerView;
 
 import java.util.Random;
 
@@ -38,19 +29,10 @@ import rx.functions.Action0;
 import static mortar.bundler.BundleServiceRunner.getBundleServiceRunner;
 
 public class MainActivity extends IvyBaseActivity
-        implements ActionBarOwner.Activity, Flow.Dispatcher, NavigationDrawerFragment.NavigationDrawerCallbacks{
+        implements ActionBarOwner.Activity, Flow.Dispatcher{
 
     public static final String TAG = MainActivity.class.getSimpleName();
 
-    /**
-     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
-     */
-//    private NavigationDrawerFragment mNavigationDrawerFragment;
-
-    /**
-     * Used to store the last screen title. For use in {@link #restoreActionBar()}.
-     */
-    private CharSequence mTitle;
     private MortarScope activityScope;
     private FlowDelegate flowDelegate;
     private PathContainerView container;
@@ -62,7 +44,6 @@ public class MainActivity extends IvyBaseActivity
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.new_activity_main);
-        mTitle = getTitle();
         if(activityScope == null){
             int random = new Random().nextInt();
             String scopeName = getLocalClassName() + "-ivyLi-" + getTaskId() + random;
@@ -85,76 +66,13 @@ public class MainActivity extends IvyBaseActivity
     }
 
     @Override
-    public void onNavigationDrawerItemSelected(int position){
-        // update the main content by replacing fragments
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
-                .commit();
-    }
+    public boolean onOptionsItemSelected(MenuItem item){
 
-    public void onSectionAttached(int number){
-        switch(number){
-            case 1:
-                mTitle = getString(R.string.title_section1);
-                break;
-            case 2:
-                mTitle = getString(R.string.title_section2);
-                break;
-        }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        if (item.getItemId() == android.R.id.home) {
+        if(item.getItemId() == android.R.id.home){
             return Flow.get(this).goBack();
         }
         return super.onOptionsItemSelected(item);
     }
-
-
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment{
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber){
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment(){
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState){
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
-        }
-
-        @Override
-        public void onAttach(Activity activity){
-            super.onAttach(activity);
-            ((MainActivity)activity).onSectionAttached(
-                    getArguments().getInt(ARG_SECTION_NUMBER));
-        }
-    }
-
 
     @Override
     public Context getContext(){
@@ -195,10 +113,6 @@ public class MainActivity extends IvyBaseActivity
         super.onPause();
     }
 
-//    @SuppressWarnings("deprecation") // https://code.google.com/p/android/issues/detail?id=151346
-//    @Override public Object onRetainNonConfigurationInstance() {
-//        return flowDelegate.onRetainNonConfigurationInstance();
-//    }
 
     @Override
     public Object getSystemService(String name){
@@ -219,21 +133,15 @@ public class MainActivity extends IvyBaseActivity
         flowDelegate.onSaveInstanceState(outState);
     }
 
-    /**
-     * Inform the view about back events.
-     */
-//    @Override
-//    public void onBackPressed(){
-//        if(!((FramePathContainerView)container).onBackPressed()) super.onBackPressed();
-//    }
 
     @Override
-    public void onBackPressed() {
-        if (Flow.get(this).goBack()) {
+    public void onBackPressed(){
+        if(Flow.get(this).goBack()){
             return;
         }
         super.onBackPressed();
     }
+
     @Override
     protected void onDestroy(){
         actionBarOwner.dropView(this);
@@ -268,10 +176,7 @@ public class MainActivity extends IvyBaseActivity
 
     @Override
     public void setMenu(ActionBarOwner.MenuAction action){
-//        if (action != actionBarMenuAction) {
-//            actionBarMenuAction = action;
-//            invalidateOptionsMenu();
-//        }
+        // don't want to do any thing here....
     }
 
 

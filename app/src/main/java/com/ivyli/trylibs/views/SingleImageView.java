@@ -48,7 +48,6 @@ public class SingleImageView extends LinearLayout{
     public void showImage(ImageJson imageJson){
         Picasso.with(getContext()).
                 load(imageJson.link).
-                placeholder(R.drawable.error_holder).
                 error(R.drawable.error_holder).
                 into(mImageview);
     }
