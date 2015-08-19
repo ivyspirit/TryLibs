@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
@@ -45,9 +46,11 @@ public class GsonParceler implements StateParceler{
         try {
             Class<?> type = instance.getClass();
 
+            // drama between activeAndroid and json
+            Gson myGson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
             writer.beginObject();
             writer.name(type.getName());
-            gson.toJson(instance, type, writer);
+            myGson.toJson(instance, type, writer);
             writer.endObject();
 
             return stringWriter.toString();
@@ -61,7 +64,6 @@ public class GsonParceler implements StateParceler{
 
         try {
             reader.beginObject();
-
             Class<?> type = Class.forName(reader.nextName());
             return gson.fromJson(reader, type);
         } catch (ClassNotFoundException e) {

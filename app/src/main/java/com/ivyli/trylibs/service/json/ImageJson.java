@@ -5,18 +5,18 @@ import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.inject.Inject;
+import com.google.gson.annotations.Expose;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Table(name = "image")
 public class ImageJson extends Model{
 
-    @Inject
-    public ImageJson(){}
+//    @Inject
+//    public ImageJson(){}
 
     @JsonProperty("link")
     @Column(name = "link")
+    @Expose
     public  String link;
 
     @JsonProperty("title")
@@ -41,5 +41,6 @@ public class ImageJson extends Model{
 
     @JsonProperty("is_album")
     @Column(name = "is_album")
+    @Expose
     public  boolean is_album;
 }

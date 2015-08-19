@@ -1,7 +1,20 @@
-<com.ivyli.trylibs.views.LibImageListView
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/image_list_view"
-    />
+    android:layout_height="match_parent">
+
+    <ProgressBar
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:id="@+id/image_list_progressbar"
+        style="@android:style/Widget.Holo.ProgressBar.Large"
+        android:layout_centerInParent="true"/>
+
+    <com.ivyli.trylibs.views.LibImageListView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/image_list_view"
+        />
+</RelativeLayout>

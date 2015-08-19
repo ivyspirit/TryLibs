@@ -82,6 +82,4 @@ public class LibImageListView extends ListView{
             ImageView image;
         }
     }
-
-
 }

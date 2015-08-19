@@ -3,6 +3,7 @@ package com.ivyli.trylibs.screen;
 
 import android.os.Bundle;
 
+import com.google.gson.annotations.Expose;
 import com.ivyli.trylibs.AndroidModule;
 import com.ivyli.trylibs.R;
 import com.ivyli.trylibs.android.ActionBarOwner;
@@ -20,6 +21,7 @@ import mortar.ViewPresenter;
 @Layout(R.layout.image_view)
 @WithModule(ImageScreen.Module.class)
 public class ImageScreen extends Path{
+    @Expose
     private final ImageJson mImage;
 
     public ImageScreen(ImageJson imageIndex){
@@ -58,7 +60,6 @@ public class ImageScreen extends Path{
             if(!hasView()){
                 return;
             }
-
             getView().showImage(mImage);
         }
 

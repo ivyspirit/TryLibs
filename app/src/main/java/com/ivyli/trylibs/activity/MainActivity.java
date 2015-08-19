@@ -22,6 +22,8 @@ import com.ivyli.trylibs.screen.GsonParceler;
 import com.ivyli.trylibs.screen.ImageListScreen;
 import com.ivyli.trylibs.views.FramePathContainerView;
 
+import java.util.Random;
+
 import javax.inject.Inject;
 
 import flow.Flow;
@@ -59,14 +61,11 @@ public class MainActivity extends IvyBaseActivity
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_main);
         setContentView(R.layout.new_activity_main);
-
-//        mNavigationDrawerFragment = (NavigationDrawerFragment)
-//                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
         if(activityScope == null){
-            String scopeName = getLocalClassName() + "-ivyLi-" + getTaskId();
+            int random = new Random().nextInt();
+            String scopeName = getLocalClassName() + "-ivyLi-" + getTaskId() + random;
             MortarScope parentScope = MortarScope.getScope(getApplication());
 
             activityScope = parentScope.buildChild()
@@ -79,14 +78,10 @@ public class MainActivity extends IvyBaseActivity
         actionBarOwner.takeView(this);
         GsonParceler parceler = new GsonParceler(new Gson());
         FlowDelegate.NonConfigurationInstance nonConfig =
-                (FlowDelegate.NonConfigurationInstance) getLastNonConfigurationInstance();
-        container = (PathContainerView) findViewById(R.id.container);
+                (FlowDelegate.NonConfigurationInstance)getLastNonConfigurationInstance();
+        container = (PathContainerView)findViewById(R.id.container);
         flowDelegate = FlowDelegate.onCreate(nonConfig, getIntent(), savedInstanceState, parceler,
                 History.single(new ImageListScreen()), this);
-        // Set up the drawer.
-//        mNavigationDrawerFragment.setUp(
-//                R.id.navigation_drawer,
-//                (DrawerLayout)findViewById(R.id.drawer_layout));
     }
 
     @Override
@@ -109,36 +104,16 @@ public class MainActivity extends IvyBaseActivity
         }
     }
 
-    public void restoreActionBar(){
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(mTitle);
-    }
-
-
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-//        if(!mNavigationDrawerFragment.isDrawerOpen()){
-//            // Only show items in the action bar relevant to this screen
-//            // if the drawer is not showing. Otherwise, let the drawer
-//            // decide what to show in the action bar.
-//            getMenuInflater().inflate(R.menu.main, menu);
-//            restoreActionBar();
-//            return true;
-//        }
-        return super.onCreateOptionsMenu(menu);
-    }
+    public boolean onOptionsItemSelected(MenuItem item) {
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
+        if (item.getItemId() == android.R.id.home) {
+            return Flow.get(this).goBack();
+        }
         return super.onOptionsItemSelected(item);
     }
+
+
 
     /**
      * A placeholder fragment containing a simple view.
@@ -186,11 +161,13 @@ public class MainActivity extends IvyBaseActivity
         return this;
     }
 
-    @Override public void dispatch(Flow.Traversal traversal, Flow.TraversalCallback callback) {
+    @Override
+    public void dispatch(Flow.Traversal traversal, Flow.TraversalCallback callback){
         Path newScreen = traversal.destination.top();
         String title = newScreen.getClass().getSimpleName();
-        ActionBarOwner.MenuAction menu = new ActionBarOwner.MenuAction("Images", new Action0() {
-            @Override public void call() {
+        ActionBarOwner.MenuAction menu = new ActionBarOwner.MenuAction("Images", new Action0(){
+            @Override
+            public void call(){
                 Flow.get(MainActivity.this).set(new ImageListScreen());
             }
         });
@@ -200,17 +177,20 @@ public class MainActivity extends IvyBaseActivity
         container.dispatch(traversal, callback);
     }
 
-    @Override protected void onNewIntent(Intent intent) {
+    @Override
+    protected void onNewIntent(Intent intent){
         super.onNewIntent(intent);
         flowDelegate.onNewIntent(intent);
     }
 
-    @Override protected void onResume() {
+    @Override
+    protected void onResume(){
         super.onResume();
         flowDelegate.onResume();
     }
 
-    @Override protected void onPause() {
+    @Override
+    protected void onPause(){
         flowDelegate.onPause();
         super.onPause();
     }
@@ -220,34 +200,47 @@ public class MainActivity extends IvyBaseActivity
 //        return flowDelegate.onRetainNonConfigurationInstance();
 //    }
 
-    @Override public Object getSystemService(String name) {
-        if (flowDelegate != null) {
+    @Override
+    public Object getSystemService(String name){
+        if(flowDelegate != null){
             Object flowService = flowDelegate.getSystemService(name);
-            if (flowService != null) return flowService;
+            if(flowService != null) return flowService;
         }
 
         return activityScope != null && activityScope.hasService(name) ? activityScope.getService(name)
                 : super.getSystemService(name);
     }
 
-    @Override protected void onSaveInstanceState(Bundle outState) {
+    @Override
+    protected void onSaveInstanceState(Bundle outState){
         super.onSaveInstanceState(outState);
-        flowDelegate.onSaveInstanceState(outState);
         getBundleServiceRunner(this).
                 onSaveInstanceState(outState);
+        flowDelegate.onSaveInstanceState(outState);
     }
 
-    /** Inform the view about back events. */
-    @Override public void onBackPressed() {
-        if (!((FramePathContainerView)container).onBackPressed()) super.onBackPressed();
-    }
+    /**
+     * Inform the view about back events.
+     */
+//    @Override
+//    public void onBackPressed(){
+//        if(!((FramePathContainerView)container).onBackPressed()) super.onBackPressed();
+//    }
 
-    @Override protected void onDestroy() {
+    @Override
+    public void onBackPressed() {
+        if (Flow.get(this).goBack()) {
+            return;
+        }
+        super.onBackPressed();
+    }
+    @Override
+    protected void onDestroy(){
         actionBarOwner.dropView(this);
         actionBarOwner.setConfig(null);
 
         // activityScope may be null in case isWrongInstance() returned true in onCreate()
-        if (isFinishing() && activityScope != null) {
+        if(isFinishing() && activityScope != null){
             activityScope.destroy();
             activityScope = null;
         }
@@ -255,22 +248,26 @@ public class MainActivity extends IvyBaseActivity
         super.onDestroy();
     }
 
-    @Override public void setShowHomeEnabled(boolean enabled) {
-//        ActionBar actionBar = getSupportActionBar();
-//        actionBar.setDisplayShowHomeEnabled(false);
+    @Override
+    public void setShowHomeEnabled(boolean enabled){
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayShowHomeEnabled(false);
     }
 
-    @Override public void setUpButtonEnabled(boolean enabled) {
-//        ActionBar actionBar = getSupportActionBar();
-//        actionBar.setDisplayHomeAsUpEnabled(enabled);
-//        actionBar.setHomeButtonEnabled(enabled);
+    @Override
+    public void setUpButtonEnabled(boolean enabled){
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(enabled);
+        actionBar.setHomeButtonEnabled(enabled);
     }
 
-    @Override public void setTitle(CharSequence title) {
+    @Override
+    public void setTitle(CharSequence title){
         getSupportActionBar().setTitle(title);
     }
 
-    @Override public void setMenu(ActionBarOwner.MenuAction action) {
+    @Override
+    public void setMenu(ActionBarOwner.MenuAction action){
 //        if (action != actionBarMenuAction) {
 //            actionBarMenuAction = action;
 //            invalidateOptionsMenu();

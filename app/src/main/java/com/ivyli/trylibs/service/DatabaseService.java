@@ -1,17 +1,16 @@
 package com.ivyli.trylibs.service;
 
 
-import com.activeandroid.ActiveAndroid;
-import com.activeandroid.query.Delete;
 import com.ivyli.trylibs.service.json.GalleryJson;
 import com.ivyli.trylibs.service.json.ImageJson;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
+import retrofit.RetrofitError;
 import rx.Observable;
 import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 public class DatabaseService{
 
@@ -23,90 +22,38 @@ public class DatabaseService{
         this.mApiService = galleryService;
     }
 
-    GalleryJson galleryJson = new GalleryJson();
+    public Observable<GalleryJson> loadImages(final String section, final String sort){
 
-    public Observable<GalleryJson> load(final String section, final String sort){
         return Observable.create(new Observable.OnSubscribe<GalleryJson>(){
-            @Override
-            public void call(final Subscriber<? super GalleryJson> subscriber){
+                                     @Override
+                                     public void call(final Subscriber<? super GalleryJson> subscriber){
+                                         try{
+                                             GalleryJson next = new GalleryJson();
+                                             // check the local db first. if we have data, avoid
+                                             // calling the imagur api.
+                                             List<ImageJson> data = next.getImages();
+                                             if(null == data || data.size() <= 0){
+                                                 next = mApiService.getImages(section, sort);
+                                                 data = next.data;
+                                                 for(ImageJson imageJson : data){
+                                                     if(!imageJson.is_album){
+                                                         imageJson.save();
+                                                     }
+                                                 }
+                                             }
 
-                if(galleryJson.getImages().size() <= 0){
-                    Observable<GalleryJson> result = mApiService.getObservableImages(section, sort)
-                            .subscribeOn(Schedulers.io());
+                                             if(!subscriber.isUnsubscribed()){
+                                                 subscriber.onNext(next);
+                                             }
+                                         }catch(RetrofitError e){
+                                             if(!subscriber.isUnsubscribed()){
+                                                 subscriber.onError(e);
+                                             }
+                                         }
 
-                    result.subscribe(new Subscriber<GalleryJson>(){
-                        @Override
-                        public void onCompleted(){
+                                     }
+                                 }
+        );
 
-                        }
-
-                        @Override
-                        public void onError(Throwable e){
-
-                        }
-
-                        @Override
-                        public void onNext(GalleryJson galleryJson){
-                            // I know i know this is not pretty. but I want to clear the table each time when
-                            // i get new images. So I don't end up having a huge table
-                            new Delete().from(ImageJson.class).execute();
-
-                            ActiveAndroid.beginTransaction();
-                            try{
-                                for(int i = 0; i < galleryJson.data.size(); i++){
-                                    ImageJson imageJson = galleryJson.data.get(i);
-                                    if(!imageJson.is_album){
-                                        galleryJson.data.get(i).save();
-                                    }
-                                }
-                                ActiveAndroid.setTransactionSuccessful();
-                            }finally{
-                                ActiveAndroid.endTransaction();
-                            }
-                        }
-                    });
-                }
-            }
-        })
-                .startWith(galleryJson) //
-                .subscribeOn(Schedulers.io()) //
-                .observeOn(AndroidSchedulers.mainThread());
-
-//        Observable<GalleryJson> result = mApiService.getObservableImages(section, sort)
-//                .subscribeOn(Schedulers.io());
-//
-//        result.subscribe(new Subscriber<GalleryJson>(){
-//            @Override
-//            public void onCompleted(){
-//
-//            }
-//
-//            @Override
-//            public void onError(Throwable e){
-//
-//            }
-//
-//            @Override
-//            public void onNext(GalleryJson galleryJson){
-//                // I know i know this is not pretty. but I want to clear the table each time when
-//                // i get new images. So I don't end up having a huge table
-//                new Delete().from(ImageJson.class).execute();
-//
-//                ActiveAndroid.beginTransaction();
-//                try{
-//                    for(int i = 0; i < galleryJson.data.size(); i++){
-//                        ImageJson imageJson = galleryJson.data.get(i);
-//                        if(!imageJson.is_album){
-//                            galleryJson.data.get(i).save();
-//                        }
-//                    }
-//                    ActiveAndroid.setTransactionSuccessful();
-//                }finally{
-//                    ActiveAndroid.endTransaction();
-//                }
-//            }
-//        });
-//        return result;
     }
-
 }

@@ -23,6 +23,7 @@ import mortar.ViewPresenter;
 import rx.Observer;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 
 
@@ -59,6 +60,17 @@ public class ImageListScreen extends Path{
                 return;
             }
 
+            // check the cache first
+            if(null == images || images.size() <= 0){
+                GalleryJson galleryJson = new GalleryJson();
+                images = galleryJson.getImages();
+            }
+
+            if((null != images && images.size() > 0)){
+                getView().showImages(images);
+                return;
+            }
+
             Observer<GalleryJson> obs = new Observer<GalleryJson>(){
                 @Override
                 public void onCompleted(){
@@ -80,44 +92,43 @@ public class ImageListScreen extends Path{
                     }
                     images = galleryJson.getImages();
                     getView().showImages(images);
+
+//                                    getView().showImages(galleryJson.data);
                 }
             };
 
-            running = mDataService.load("hot", "virtal")
-                    .observeOn(AndroidSchedulers.mainThread()).
-                            subscribe(obs);
+            // seems like we did not have any images in the local db yet. make api call to imagur.
+            running = mDataService.loadImages("hot", "virtal")
+                    .subscribeOn(Schedulers.io()). //
+                            observeOn(AndroidSchedulers.mainThread()).
+                            subscribe(new Observer<GalleryJson>(){
+                                @Override
+                                public void onCompleted(){
+                                    Log.w(getClass().getName(), "That's surprising, never thought this should end.");
+                                    running = Subscriptions.empty();
+                                }
 
+                                @Override
+                                public void onError(Throwable e){
+                                    Log.w(getClass().getName(), "'sploded, will try again on next config change.");
+                                    Log.w(getClass().getName(), e);
+                                    running = Subscriptions.empty();
+                                }
 
+                                @Override
+                                public void onNext(GalleryJson galleryJson){
+                                    if(!hasView()){
+                                        return;
+                                    }
+                                    images = galleryJson.getImages();
+                                    getView().showImages(images);
+                                }
+                            });
 
-//            new Observer<GalleryJson>(){
-//                @Override
-//                public void onCompleted(){
-//                    Log.w(getClass().getName(), "That's surprising, never thought this should end.");
-//                    running = Subscriptions.empty();
-//                }
-//
-//                @Override
-//                public void onError(Throwable e){
-//                    Log.w(getClass().getName(), "'sploded, will try again on next config change.");
-//                    Log.w(getClass().getName(), e);
-//                    running = Subscriptions.empty();
-//                }
-//
-//                @Override
-//                public void onNext(GalleryJson galleryJson){
-//                    if(!hasView()){
-//                        return;
-//                    }
-//                    images = galleryJson.getImages();
-//                    getView().showImages(images);
-//                }
-//            }
         }
 
         public void onImageSelected(int position){
             Flow.get(getView()).set(new ImageScreen(images.get(position)));
         }
     }
-
-
 }
